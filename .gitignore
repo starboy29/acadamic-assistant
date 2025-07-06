@@ -1,0 +1,56 @@
+# === Python Files ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# === Environment Files ===
+.env
+.venv/
+venv/
+env/
+*.env
+
+# === VS Code ===
+.vscode/
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+
+# === Logs & Databases ===
+*.log
+*.sqlite3
+
+# === Compiled Files ===
+*.so
+*.out
+*.o
+*.dll
+*.exe
+
+# === Jupyter Notebook Checkpoints ===
+.ipynb_checkpoints/
+
+# === Package Distributions ===
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# === PyInstaller ===
+*.spec
+
+# === Git Backup ===
+*.orig
+
+# === Personal Config ===
+*.idea/
+*.swp
+
+# === Project Files ===
+credentials.json
+scan_results.json
+format.txt
