@@ -54,3 +54,4 @@ build/
 credentials.json
 scan_results.json
 format.txt
+config.py

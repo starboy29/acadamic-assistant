@@ -1,11 +1,11 @@
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from datetime import datetime, timedelta
-from config import CALENDER_ID
+from config import CALENDAR_ID
 # === CONFIGURATION ===
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 SERVICE_ACCOUNT_FILE = 'credentials.json'  # Path to service account key
-CALENDAR_ID =CALENDER_ID      # ✅ Replace with your Gmail calendar ID
+  # ✅ Replace with your Gmail calendar ID
 
 def create_event(subject, chapter, topic, deadline_str, description):
     """
