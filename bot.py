@@ -62,15 +62,13 @@ class MyClient(discord.Client):
                 reply += f"\n...and {len(files) - 15} more."
 
             await interaction.followup.send(reply, ephemeral=True)
-
-        @self.tree.command(guild=guild, name="set_assignment", description="Add a new assignment with deadline and optional file")
+        @self.tree.command(name="set_assignment", description="Add a new assignment with deadline and optionally upload files")
         @app_commands.describe(
             subject="Subject name",
             chapter="Chapter number or name",
             topic="Topic name",
-            deadline="Deadline in YYYY-MM-DD format (e.g., 2025-06-22)",
-            description="Description of the assignment",
-            file="Upload a related file (PDF preferred)"
+            deadline="Deadline (YYYY-MM-DD)",
+            description="Details about the assignment"
         )
         async def set_assignment(
             interaction: discord.Interaction,
@@ -79,12 +77,11 @@ class MyClient(discord.Client):
             topic: str,
             deadline: str,
             description: str,
-            file: discord.Attachment = None
+            file: discord.Attachment = None  # Optional one-file upload
         ):
-            # ✅ Defer immediately
             await interaction.response.defer(ephemeral=True, thinking=True)
 
-            # ✅ Append time if only date is given
+            # ✅ Validate deadline
             try:
                 deadline_iso = deadline + "T23:59:00"
                 datetime.fromisoformat(deadline_iso)
@@ -92,10 +89,17 @@ class MyClient(discord.Client):
                 await interaction.followup.send("❌ Invalid deadline format. Use YYYY-MM-DD", ephemeral=True)
                 return
 
-            # ✅ Upload to Google Drive (if file provided)
-            file_id = None
-            drive_link = None
+            # ✅ Store context for multi-file upload via on_message()
+            user_upload_context[interaction.user.id] = {
+                "subject": subject,
+                "chapter": chapter,
+                "topic": topic,
+                "category": "Assignments",
+                "status": "Pending"
+            }
 
+            # ✅ Upload the optional file immediately if provided
+            drive_link = None
             if file:
                 try:
                     file_bytes = await file.read()
@@ -106,10 +110,10 @@ class MyClient(discord.Client):
                         filename=filename,
                         category="Assignments",
                         subject=subject,
-                        status="Pending"  # no chapter needed for assignments
+                        status="Pending"
                     )
 
-                    # ✅ Optionally: store metadata in MongoDB here
+                    # Save metadata in MongoDB
                     store_file_metadata(
                         subject=subject,
                         chapter=None,
@@ -125,19 +129,21 @@ class MyClient(discord.Client):
                     await interaction.followup.send(f"❌ File upload failed: {e}", ephemeral=True)
                     return
 
-            # ✅ Create calendar event
+            # ✅ Create Google Calendar event
             try:
                 event_link = create_event(subject, chapter, topic, deadline_iso, description)
             except Exception as e:
                 print(f"⚠️ Calendar error: {e}")
                 event_link = None
 
-            # ✅ Respond
+            # ✅ Compose response
             reply = f"✅ Assignment set for **{subject} - Chapter {chapter} - {topic}**"
             if event_link:
                 reply += f"\n📅 [Calendar Event]({event_link})"
             if drive_link:
-                reply += f"\n📎 [File Link]({drive_link})"
+                reply += f"\n📎 [Uploaded File]({drive_link})"
+            else:
+                reply += f"\n📥 No file uploaded. You can now upload one or more files in your next message."
 
             await interaction.followup.send(reply, ephemeral=True)
 
