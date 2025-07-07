@@ -14,27 +14,6 @@ drive_service = build('drive', 'v3', credentials=credentials)
 
 # Optional: manually set root folder ID or let it be created dynamically
 
-def get_or_create_folder(name, parent_id=None):
-    query = f"name = '{name}' and mimeType = 'application/vnd.google-apps.folder'"
-    if parent_id:
-        query += f" and '{parent_id}' in parents"
-    else:
-        query += " and 'root' in parents"
-
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    folders = results.get('files', [])
-
-    if folders:
-        return folders[0]['id']
-
-    folder_metadata = {
-        'name': name,
-        'mimeType': 'application/vnd.google-apps.folder',
-        'parents': [parent_id] if parent_id else []
-    }
-
-    folder = drive_service.files().create(body=folder_metadata, fields='id').execute()
-    return folder.get('id')
 
 def upload_file_to_drive(file_bytes, filename, category, subject, chapter=None, status="Pending"):
     """

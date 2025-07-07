@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from config import MONGO_URI
 from datetime import datetime
 
+
 # Connect to MongoDB
 client = MongoClient(MONGO_URI)
 db = client["academic_notes"]  # 🔁 database name
@@ -25,7 +26,7 @@ def add_assignment(subject, chapter, topic, deadline_str, description):
     return True
 
 
-def store_file_metadata(subject, chapter, topic, filename, file_id, drive_link, category):
+def store_file_metadata(subject, chapter, topic, filename, file_id, drive_link, category,status=None):
     metadata = {
         "subject": subject,
         "chapter": chapter,
@@ -34,6 +35,7 @@ def store_file_metadata(subject, chapter, topic, filename, file_id, drive_link, 
         "file_id": file_id,
         "drive_link": drive_link,
         "category": category,
+        "status":status,
         "uploaded_at": datetime.utcnow()
     }
     db.files.insert_one(metadata)
@@ -46,6 +48,18 @@ def get_notes_by_subject_and_chapter(subject, chapter):
         "chapter": {"$regex": chapter, "$options": "i"}
     }))
 
+def list_assignments(subject=None, status="Pending"):
+    query = {"status": status}
+    if subject:
+        query["subject"] = {"$regex": subject, "$options": "i"}
 
+    return list(db.assignments.find(query).sort("deadline", 1))
 
+def list_notes(subject=None, chapter=None):
+    query = {"category": "Notes"}
+    if subject:
+        query["subject"] = {"$regex": subject, "$options": "i"}
+    if chapter:
+        query["chapter"] = {"$regex": chapter, "$options": "i"}
 
+    return list(db.files.find(query).sort("uploaded_at", -1))
